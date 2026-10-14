@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Woonsimulator Achterhoek</title>
+<style>
+:root{color-scheme:light;--ink:#2b3a2f;--sub:#5d6b60;--acc:#2f7a4b;--acc2:#d97a3c;--line:#d9e4d6}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,'Times New Roman',serif;color:var(--ink);background:#dff0e6;min-height:100vh}
+.scene{position:fixed;inset:0;width:100%;height:100%;z-index:-1}
+.wrap{max-width:660px;margin:0 auto;padding:26px 16px 70px}
+header{text-align:center;margin-bottom:16px}
+h1{font-size:1.7rem;margin:0 0 6px;text-shadow:0 1px 8px rgba(255,255,255,.9)}
+.intro{font-size:.95rem;margin:0;color:#34463a;text-shadow:0 1px 6px rgba(255,255,255,.9)}
+.card{background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 10px 30px rgba(40,80,50,.18)}
+.prog{height:8px;background:#e3eddf;border-radius:8px;margin-bottom:20px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),#7fbf7a);transition:width .3s}
+h2{font-size:1.15rem;margin:0 0 14px}
+.step{display:none}.step.on{display:block}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:440px){.opts{grid-template-columns:1fr}}
+.opt{border:2px solid var(--line);border-radius:12px;padding:13px 10px;cursor:pointer;text-align:center;background:#fff;color:var(--ink);font:inherit;font-size:.93rem}
+.opt:hover{border-color:#9fcaa6}
+.opt.sel{border-color:var(--acc);background:#e8f5ea;font-weight:bold}
+.sl{margin-bottom:18px}
+.sl label{display:block;font-weight:bold;margin-bottom:6px;font-size:.95rem}
+.sl small{display:block;color:var(--sub);font-weight:normal;font-size:.8rem}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.big{color:var(--acc);font-weight:bold;font-size:1.15rem}
+.tot{background:#f1f7ee;border-radius:10px;padding:10px 14px;font-size:.93rem}
+.st{margin-bottom:16px}
+.st p{margin:0 0 8px;font-size:.95rem}
+.sc{display:flex;gap:6px}
+.sc .opt{flex:1;padding:10px 0}
+.ends{display:flex;justify-content:space-between;font-size:.72rem;color:var(--sub);margin-top:3px}
+.nav{display:flex;justify-content:space-between;margin-top:20px}
+button.p{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:12px 24px;font:inherit;font-size:1rem;cursor:pointer}
+button.p:disabled{opacity:.4;cursor:not-allowed}
+button.g{background:transparent;border:2px solid var(--line);border-radius:12px;padding:10px 18px;font:inherit;cursor:pointer;color:var(--ink)}
+.res{border-radius:14px;padding:16px;margin-bottom:12px}
+.res.ok{background:#e3f4e6;border:2px solid var(--acc)}
+.res.no{background:#fdeae1;border:2px solid #cf6a45}
+.res h3{margin:0 0 6px;font-size:1.02rem}.res p{margin:0;font-size:.9rem;line-height:1.45}
+.note{font-size:.85rem;color:var(--sub);margin:8px 0}
+#status{font-size:.82rem;color:var(--sub);margin-top:10px;text-align:center}
+.foot{text-align:center;font-size:.78rem;color:#34463a;margin-top:14px;text-shadow:0 1px 6px rgba(255,255,255,.9)}
+</style>
+</head>
+<body>
+<svg class="scene" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6dff3"/><stop offset=".55" stop-color="#e8f5ec"/><stop offset="1" stop-color="#fbf3de"/></linearGradient>
+<symbol id="tree" viewBox="0 0 60 90"><rect x="27" y="55" width="6" height="35" fill="#7a5a3a"/><circle cx="30" cy="34" r="28" fill="#4f9a5a"/><circle cx="17" cy="46" r="16" fill="#62b06b"/><circle cx="44" cy="45" r="16" fill="#448c50"/></symbol>
+<symbol id="pine" viewBox="0 0 50 100"><rect x="22" y="76" width="6" height="24" fill="#6e4f33"/><path d="M25 0L45 40H33L48 72H2L17 40H5Z" fill="#2f7a4b"/></symbol>
+<symbol id="h1" viewBox="0 0 100 90"><rect x="10" y="40" width="80" height="48" fill="#f3e3c8"/><path d="M0 45L50 6L100 45Z" fill="#c0603a"/><rect x="42" y="58" width="16" height="30" fill="#8b5a3c"/><rect x="18" y="52" width="16" height="16" fill="#9fd0ea"/><rect x="66" y="52" width="16" height="16" fill="#9fd0ea"/></symbol>
+<symbol id="h2" viewBox="0 0 100 90"><rect x="8" y="34" width="84" height="54" fill="#b5553b"/><path d="M0 38L50 12L100 38V44H0Z" fill="#4a4f5a"/><rect x="20" y="48" width="14" height="18" fill="#f6f1df"/><rect x="43" y="56" width="14" height="32" fill="#e9d9b5"/><rect x="66" y="48" width="14" height="18" fill="#f6f1df"/></symbol>
+<symbol id="cl" viewBox="0 0 120 50"><ellipse cx="60" cy="32" rx="52" ry="14" fill="#fff"/><circle cx="44" cy="24" r="16" fill="#fff"/><circle cx="72" cy="20" r="20" fill="#fff"/></symbol>
+</defs>
+<rect width="1440" height="900" fill="url(#sky)"/>
+<circle cx="1240" cy="130" r="58" fill="#ffe08a" opacity=".92"/>
+<use href="#cl" x="120" y="80" width="190" height="80" opacity=".9"/><use href="#cl" x="620" y="150" width="150" height="62" opacity=".8"/><use href="#cl" x="980" y="60" width="170" height="70" opacity=".85"/>
+<path d="M0 540Q260 440 520 520T1000 500T1440 530V900H0Z" fill="#bfe0b6"/>
+<path d="M0 600Q300 520 620 590T1200 570T1440 600V900H0Z" fill="#9ccf93"/>
+<use href="#h1" x="140" y="500" width="84" height="76"/><use href="#h2" x="250" y="514" width="74" height="67"/><use href="#h1" x="400" y="505" width="78" height="70"/>
+<use href="#pine" x="520" y="480" width="40" height="80"/><use href="#pine" x="555" y="492" width="34" height="68"/>
+<use href="#h2" x="860" y="508" width="82" height="74"/><use href="#h1" x="970" y="500" width="76" height="68"/><use href="#h2" x="1090" y="512" width="72" height="65"/>
+<use href="#tree" x="720" y="500" width="54" height="80"/><use href="#tree" x="1210" y="490" width="60" height="90"/>
+<path d="M0 700Q320 650 640 700T1240 690T1440 710V900H0Z" fill="#7fbf7a"/>
+<use href="#h1" x="60" y="620" width="96" height="86"/><use href="#h2" x="190" y="632" width="86" height="77"/><use href="#h1" x="1120" y="626" width="92" height="82"/><use href="#h2" x="1240" y="636" width="84" height="76"/>
+<use href="#tree" x="320" y="620" width="70" height="105"/><use href="#tree" x="960" y="626" width="66" height="100"/><use href="#pine" x="1350" y="610" width="48" height="96"/>
+<path d="M0 790Q300 750 560 795T1100 775T1440 805V900H0Z" fill="#6fbbe0"/>
+<path d="M60 830Q240 812 420 832M620 845Q820 826 1000 846M1100 822Q1250 810 1400 826" stroke="#d8f0fb" stroke-width="5" fill="none" stroke-linecap="round"/>
+<use href="#tree" x="20" y="740" width="84" height="126"/><use href="#tree" x="1330" y="745" width="86" height="130"/><use href="#pine" x="120" y="760" width="50" height="100"/>
+</svg>
+
+<main class="wrap">
+<header>
+<h1>🏡 Woonsimulator Achterhoek</h1>
+<p class="intro">Ontdek wat er voor jou haalbaar is op de woningmarkt. Doe mee als jongere (18-30), het duurt ongeveer 2 minuten.</p>
+</header>
+<div class="card">
+<div class="prog"><i id="bar"></i></div>
+
+<div class="step" id="s0"><h2>Wat is je leeftijd?</h2>
+<div class="opts" data-f="leeftijd"><button class="opt" data-v="18-21">18 – 21 jaar</button><button class="opt" data-v="22-25">22 – 25 jaar</button><button class="opt" data-v="26-30">26 – 30 jaar</button></div></div>
+
+<div class="step" id="s1"><h2>Wat is jullie netto maandinkomen?</h2>
+<div class="sl"><label>Jouw inkomen: <span class="big" id="jv">€ 2.000</span><small>netto per maand, bij benadering</small></label><input type="range" id="jij" min="0" max="6000" step="50" value="2000"></div>
+<div class="sl"><label>Inkomen van je partner: <span class="big" id="pv">€ 0</span><small>laat op 0 staan als je alleen woont of zoekt</small></label><input type="range" id="partner" min="0" max="6000" step="50" value="0"></div>
+<div class="tot" id="tot"></div></div>
+
+<div class="step" id="s2"><h2>Wil je liever huren of kopen?</h2>
+<div class="opts" data-f="keuze"><button class="opt" data-v="huur">🔑 Huren</button><button class="opt" data-v="koop">🏠 Kopen</button></div></div>
+
+<div class="step" id="s3"><h2>Waar zou je het liefst wonen?</h2>
+<div class="opts" data-f="locatie"><button class="opt" data-v="dorp">🌳 Dorp of kleine kern</button><button class="opt" data-v="stad">🏙️ Stad (Doetinchem)</button></div></div>
+
+<div class="step" id="s4"><h2>Welk type woning past het best bij jou?</h2>
+<div class="opts" data-f="woning"><button class="opt" data-v="appartement">Appartement</button><button class="opt" data-v="rijtjeshuis">Rijtjeshuis</button><button class="opt" data-v="vrijstaand">Vrijstaand huis</button><button class="opt" data-v="tiny_house">Tiny house</button><button class="opt" data-v="gedeeld">Gedeeld wonen / hospita</button></div></div>
+
+<div class="step" id="s5"><h2>Hoeveel spaargeld of eigen inbreng heb je?</h2>
+<div class="opts" data-f="spaar"><button class="opt" data-v="geen">Geen</button><button class="opt" data-v="tot10">Tot € 10.000</button><button class="opt" data-v="tot30">€ 10.000 – € 30.000</button><button class="opt" data-v="meer30">Meer dan € 30.000</button></div></div>
+
+<div class="step" id="s6"><h2 id="segT">Welk prijssegment kies je?</h2><div class="opts" id="segO" data-f="segment"></div></div>
+
+<div class="step" id="s7"><h2>Hoe aanpasbaar ben je?</h2>
+<p class="note" style="margin-top:-6px">1 = helemaal oneens, 5 = helemaal eens</p>
+<div class="st"><p>Ik ben bereid een kleinere woning te accepteren.</p><div class="sc" data-f="a1"></div></div>
+<div class="st"><p>Ik ben bereid verder van mijn werk of familie te wonen.</p><div class="sc" data-f="a2"></div></div>
+<div class="st"><p>Ik ben bereid een woning te delen met anderen.</p><div class="sc" data-f="a3"></div></div>
+<div class="st"><p>Ik ben bereid langer dan 2 jaar te wachten op een woning.</p><div class="sc" data-f="a4"></div></div></div>
+
+<div class="step" id="s8"><h2>Jouw resultaat</h2><div id="result"></div><div id="status"></div>
+<div class="nav"><button class="g" onclick="restart()">Opnieuw invullen</button></div></div>
+
+<div class="nav" id="nav"><button class="g" id="back" onclick="go(-1)">Terug</button><button class="p" id="next" onclick="go(1)">Volgende</button></div>
+</div>
+<p class="foot">Je antwoorden worden anoniem gebruikt voor een onderzoek naar het woningtekort voor jongeren in de Achterhoek.</p>
+</main>
+
+<script>
+// >>> PLAK HIER JE FORMSPREE-LINK, bijv. "https://formspree.io/f/abcdwxyz"
+const ENDPOINT = "087fab89-5aac-44de-bc9d-b4d655482d8a";
+
+const A = {jij:2000, partner:0};
+const REQ = [['leeftijd'],[],['keuze'],['locatie'],['woning'],['spaar'],['segment'],['a1','a2','a3','a4']];
+// Schatting eigen inbreng (middenwaarde per categorie)
+const SPAAR = {geen:0, tot10:5000, tot30:20000, meer30:40000};
+const SEG = {
+  huur:[['sociale_huur','Sociale huur (± €763/mnd)',763],['midden_huur','Middenhuur (± €1.000/mnd)',1000],['vrije_huur','Vrije sector huur (± €1.300/mnd)',1300]],
+  koop:[['betaalbare_koop','Betaalbare koop (tot €370.000)',370000],['vrije_koop','Vrije markt koop (± €393.000)',393000]]
+};
+let cur = 0, built = null;
+const $ = id => document.getElementById(id);
+const eur = n => '€ ' + Math.round(n).toLocaleString('nl-NL');
+
+document.querySelectorAll('.sc').forEach(sc => {
+  for(let i=1;i<=5;i++) sc.insertAdjacentHTML('beforeend','<button class="opt" data-v="'+i+'">'+i+'</button>');
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('.opt'); if(!b) return;
+  const g = b.parentElement, f = g.dataset.f; if(!f) return;
+  A[f] = b.dataset.v;
+  g.querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
+  b.classList.add('sel'); refresh();
+});
+['jij','partner'].forEach(id => $(id).addEventListener('input', e => {
+  A[id] = +e.target.value;
+  $(id==='jij'?'jv':'pv').textContent = eur(A[id]); totals();
+}));
+function totals(){
+  $('tot').innerHTML = A.partner > 0
+    ? 'Samen: <b>'+eur(A.jij+A.partner)+'</b> per maand'
+    : 'Je zoekt alleen: <b>'+eur(A.jij)+'</b> per maand';
+}
+function buildSeg(){
+  if(built === A.keuze) return;
+  built = A.keuze; delete A.segment;
+  $('segO').innerHTML = SEG[A.keuze].map(s => '<button class="opt" data-v="'+s[0]+'">'+s[1]+'</button>').join('');
+  $('segT').textContent = A.keuze==='huur' ? 'Welk type huurwoning zoek je?' : 'Welk type koopwoning zoek je?';
+}
+function refresh(){ $('next').disabled = !(REQ[cur]||[]).every(k => A[k] !== undefined); }
+function show(n){
+  cur = n;
+  document.querySelectorAll('.step').forEach((s,i) => s.classList.toggle('on', i===n));
+  if(n===6) buildSeg();
+  $('bar').style.width = Math.min(100, n/8*100) + '%';
+  $('nav').style.display = n===8 ? 'none' : 'flex';
+  $('back').style.visibility = n===0 ? 'hidden' : 'visible';
+  $('next').textContent = n===7 ? 'Bekijk resultaat' : 'Volgende';
+  refresh(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function go(d){ if(d>0 && cur===7){ result(); show(8); send(); return; } show(cur+d); }
+
+function check(inc){
+  const s = SEG[A.keuze].find(x => x[0]===A.segment), p = s[2];
+  if(A.keuze==='huur'){
+    const ok = p <= inc/3;
+    return {ok, txt: ok ? 'Een huur van ± '+eur(p)+' blijft onder een derde van jullie inkomen ('+eur(inc/3)+').'
+                        : 'Een huur van ± '+eur(p)+' is meer dan een derde van het inkomen (grens: '+eur(inc/3)+').'};
+  }
+  const lenen = inc*12*4.5, tot = lenen + SPAAR[A.spaar], ok = tot >= p;
+  return {ok, txt: 'Lenen kan ± '+eur(lenen)+', plus eigen inbreng ± '+eur(SPAAR[A.spaar])+' = ± '+eur(tot)+'. Woning: '+eur(p)+'. '+(ok?'Dat is voldoende.':'Dat is te weinig.')};
+}
+function block(titel, inc){
+  const r = check(inc);
+  return {ok:r.ok, html:'<div class="res '+(r.ok?'ok':'no')+'"><h3>'+(r.ok?'✅':'⚠️')+' '+titel+': '+(r.ok?'haalbaar':'lastig haalbaar')+'</h3><p>'+r.txt+'</p></div>'};
+}
+function result(){
+  const alone = block(A.partner>0?'Met alleen jouw inkomen ('+eur(A.jij)+')':'Jouw situatie ('+eur(A.jij)+')', A.jij);
+  A.ok_alleen = alone.ok; let html = alone.html;
+  if(A.partner > 0){
+    const both = block('Samen ('+eur(A.jij+A.partner)+')', A.jij+A.partner);
+    A.ok_samen = both.ok; html += both.html;
+    if(!alone.ok && both.ok) html += '<p class="note">Alleen is het lastig, maar samen is het wél haalbaar. Veel jongeren zijn op een tweede inkomen aangewezen.</p>';
+  } else A.ok_samen = A.ok_alleen;
+  if(A.segment==='sociale_huur') html += '<p class="note">Let op: voor sociale huur geldt in de Achterhoek vaak een lange wachtlijst.</p>';
+  $('result').innerHTML = html;
+}
+async function send(){
+  if(!ENDPOINT) return;
+  const st = $('status'); st.textContent = 'Antwoorden versturen…';
+  try{
+    const r = await fetch(ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify({
+        leeftijd:A.leeftijd, inkomen_jij:A.jij, inkomen_partner:A.partner, huishoudinkomen:A.jij+A.partner,
+        keuze:A.keuze, locatie:A.locatie, woningtype:A.woning, spaargeld:A.spaar, segment:A.segment,
+        kleiner_accepteren:A.a1, verder_wonen:A.a2, woning_delen:A.a3, langer_wachten:A.a4,
+        haalbaar_alleen:A.ok_alleen?'ja':'nee', haalbaar_samen:A.ok_samen?'ja':'nee', tijdstip:new Date().toISOString()
+      })});
+    st.textContent = r.ok ? '✓ Je antwoorden zijn anoniem verstuurd. Bedankt voor je bijdrage!' : 'Versturen is niet gelukt (foutcode '+r.status+').';
+  }catch(e){ st.textContent = 'Versturen is niet gelukt. Controleer je internetverbinding.'; }
+}
+function restart(){
+  Object.keys(A).forEach(k => delete A[k]); A.jij=2000; A.partner=0; built=null;
+  $('jij').value=2000; $('partner').value=0; $('jv').textContent=eur(2000); $('pv').textContent=eur(0);
+  document.querySelectorAll('.opt.sel').forEach(o => o.classList.remove('sel'));
+  $('status').textContent=''; totals(); show(0);
+}
+totals(); show(0);
+</script>
+</body>
+</html>
